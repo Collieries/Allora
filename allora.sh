@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "\nПодписаться на канал - https://t.me/web3easy\n"
+echo -e "\nПодписаться на канал Web3easy\n"
 
 sleep 2
 
@@ -348,10 +348,11 @@ EOL
                 echo "Проверка статуса ноды: Ошибка"
             fi
 
-            echo -e "\nПодписаться на канал - https://t.me/web3easy\n"
+            echo -e "\nПодписаться на канал Web3easy\n"
             ;;
         2)
-            sleep 2
+            echo "Через 30 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C\n"
+            sleep 60
             container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
             if [ -z "$container_id" ]; then
                 echo "Контейнер с IMAGE 'basic-coin-prediction-node-worker' не найден."
