@@ -351,7 +351,7 @@ EOL
             echo -e "\nПодписаться на канал - https://t.me/web3easy\n"
             ;;
         2)
-            echo "Через 30 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C.
+            echo "Через 30 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C."
             sleep 30
             container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
             if [ -z "$container_id" ]; then
