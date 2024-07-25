@@ -109,7 +109,7 @@ while true; do
 
             # Установка Allorad Wallet
             echo "Происходит установка Allorad Wallet..."
-            if git clone -b <latest-release-tag> https://github.com/allora-network/allora-chain.git &&
+            if git clone -b https://github.com/allora-network/allora-chain.git &&
                cd allora-chain && make all; then
                 echo "Установка Allorad Wallet: Успешно"
             else
