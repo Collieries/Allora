@@ -9,7 +9,7 @@ while true; do
     echo "2. Проверить логи ноды Allora"
     echo "3. Проверить статус ноды Allora"
     echo "4. Проверить обновление ноды Allora"
-    echo "5. Выйти из скрипта"
+    echo "5. Выход"
     read -p "Выберите опцию: " option
 
     case $option in
