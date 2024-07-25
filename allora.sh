@@ -9,7 +9,7 @@ while true; do
     echo "2. Проверить логи ноды Allora"
     echo "3. Проверить статус ноды Allora"
     echo "4. Проверить обновление ноды Allora"
-    echo "5. Выход"
+    echo "5. Выйти из скрипта"
     read -p "Выберите опцию: " option
 
     case $option in
@@ -109,7 +109,7 @@ while true; do
 
             # Установка Allorad Wallet
             echo "Происходит установка Allorad Wallet..."
-            if git clone -b https://github.com/allora-network/allora-chain.git &&
+            if git clone https://github.com/allora-network/allora-chain.git &&
                cd allora-chain && make all; then
                 echo "Установка Allorad Wallet: Успешно"
             else
@@ -348,11 +348,11 @@ EOL
                 echo "Проверка статуса ноды: Ошибка"
             fi
 
-            echo -e "\nБудь в курсе актуальных событий Web3.Подпишись на канал https://t.me/web3easy\n"
+            echo -e "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
             ;;
         2)
-            echo "Через 30 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C\n"
-            sleep 30
+            echo "Через 20 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C.\n"
+            sleep 20
             container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
             if [ -z "$container_id" ]; then
                 echo "Контейнер с IMAGE 'basic-coin-prediction-node-worker' не найден."
@@ -399,7 +399,7 @@ EOL
             fi
             ;;
         5)
-            echo "Выход."
+            echo "Выход из скрипта."
             exit 0
             ;;
         *)
