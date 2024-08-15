@@ -274,7 +274,6 @@ sleep 2
             else
                 docker logs -f $container_id
             fi
-            ;;
         3)
             echo "Проверка статуса ноды..."
             if curl --location 'http://localhost:6000/api/v1/functions/execute' \
@@ -303,7 +302,6 @@ sleep 2
             else
                 echo "Проверка статуса ноды: Ошибка"
             fi
-            ;;
         4)
             echo "Проверка обновления ноды..."
             response=$(curl -s http://localhost:8000/update)
@@ -312,13 +310,10 @@ sleep 2
             else
                 echo "Версия ноды неактуальна."
             fi
-            ;;
         5)
             echo "Выход из скрипта."
             exit 0
-            ;;
         *)
             echo "Неверная опция. Пожалуйста, выберите 1, 2, 3, 4 или 5."
-            ;;
     esac
 done
