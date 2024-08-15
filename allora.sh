@@ -28,8 +28,7 @@ echo "Установка дополнительных пакетов..."
 if sudo apt install jq; then
 echo "Установка дополнительных пакетов:Успешно"
 else
-echo"Установка дополнительных пакетов:Ошибка
-fi
+echo"Установка дополнительных пакетов:Ошибка 
             # Установка дополнительных пакетов
             echo "Происходит установка дополнительных пакетов..."
             if sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make -y; then
