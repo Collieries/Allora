@@ -6,10 +6,6 @@ sleep 2
 
 while true; do
     echo "1. Установить ноду Allora"
-    echo "2. Проверить логи ноды Allora"
-    echo "3. Проверить статус ноды Allora"
-    echo "4. Проверить обновление ноды Allora"
-    echo "5. Выйти из скрипта"
     read -p "Выберите опцию: " option
 
     case $option in
