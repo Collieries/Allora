@@ -9,7 +9,7 @@ while true; do
     echo "2. Проверить логи ноды Allora"
     echo "3. Проверить статус ноды Allora"
     echo "4. Проверить обновление ноды Allora"
-    echo "5. Выйти из скрипта"
+    echo "5. Выход"
     read -p "Выберите опцию: " option
 
     case $option in
@@ -18,15 +18,13 @@ while true; do
 
             # Обновление пакетов
             echo "Происходит обновление пакетов..."
-            if sudo apt update && sudo apt upgrade -y; then
+            if sudo apt update && sudo apt upgrade -y && sudo apt install jq; then
                 echo "Обновление пакетов: Успешно"
             else
                 echo "Обновление пакетов: Ошибка"
                 exit 1
             fi
-            echo "Установка дополнительных пакетов..."
-if sudo apt install jq
-echo
+
             # Установка дополнительных пакетов
             echo "Происходит установка дополнительных пакетов..."
             if sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make -y; then
@@ -183,49 +181,134 @@ echo
                 exit 1
             fi
 
-            # Создание файла config.json
-            cat <<EOL> config.json
-{
-  "wallet": {
-    "addressKeyName": "test",
-    "addressRestoreMnemonic": "$WALLET_SEED_PHRASE",
-    "alloraHomeDir": "",
-    "gas": "1000000",
-    "gasAdjustment": 1.0,
-    "nodeRpc": "https://sentries-rpc.testnet-1.testnet.allora.network/",
-    "maxRetries": 1,
-    "delay": 1,
-    "submitTx": true
-  },
-  "worker": [
-    {
-      "topicId": 1,
-      "inferenceEntrypointName": "api-worker-reputer",
-      "loopSeconds": 5,
-      "parameters": {
-        "InferenceEndpoint": "http://localhost:8000/inference/{Token}",
-        "Token": "ETH"
-      }
-    },
-    {
-      "topicId": 1,
-      "inferenceEntrypointName": "api-worker-reputer",
-      "loopSeconds": 5,
-      "parameters": {
-        "InferenceEndpoint": "http://localhost:8000/inference/{Token}",
-        "Token": "ETH"
-      }
-    }
-  ]
-}
-EOL
+            # Создание файла docker-compose.yml
+            cat <<EOL > docker-compose.yml
+version: '3'
 
-echo -e "Файл config.json создан успешно"
-echo
-mkdir worker-data
-chmod +x init.config
-sleep 2
-./init.config
+services:
+  inference:
+    container_name: inference-basic-eth-pred
+    build:
+      context: .
+    command: python -u /app/app.py
+    ports:
+      - "8000:8000"
+    networks:
+      eth-model-local:
+        aliases:
+          - inference
+        ipv4_address: 172.22.0.4
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/inference/ETH"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - ./inference-data:/app/data
+
+  updater:
+    container_name: updater-basic-eth-pred
+    build: .
+    environment:
+      - INFERENCE_API_ADDRESS=http://inference:8000
+    command: >
+      sh -c "
+      while true; do
+        python -u /app/update_app.py;
+        sleep 24h;
+      done
+      "
+    depends_on:
+      inference:
+        condition: service_healthy
+    networks:
+      eth-model-local:
+        aliases:
+          - updater
+        ipv4_address: 172.22.0.5
+
+  worker:
+    container_name: worker-basic-eth-pred
+    environment:
+      - INFERENCE_API_ADDRESS=http://inference:8000
+      - HOME=/data
+    build:
+      context: .
+      dockerfile: Dockerfile_b7s
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - |
+        if [ ! -f /data/keys/priv.bin ]; then
+          echo "Generating new private keys..."
+          mkdir -p /data/keys
+          cd /data/keys
+          allora-keys
+        fi
+        # Change boot-nodes below to the key advertised by your head
+        allora-node --role=worker --peer-db=/data/peerdb --function-db=/data/function-db \
+          --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace \
+          --private-key=/data/keys/priv.bin --log-level=debug --port=9011 \
+          --boot-nodes=/ip4/172.22.0.100/tcp/9010/p2p/$head_id \
+          --topic=allora-topic-1-worker \
+          --allora-chain-key-name=testkey \
+          --allora-chain-restore-mnemonic='$seed_phrase' \
+          --allora-node-rpc-address=https://allora-rpc.testnet-1.testnet.allora.network \
+          --allora-chain-topic-id=1
+          --allora-chain-worker-mode=worker
+    volumes:
+      - ./worker-data:/data
+    working_dir: /data
+    depends_on:
+      - inference
+      - head
+    networks:
+      eth-model-local:
+        aliases:
+          - worker
+        ipv4_address: 172.22.0.10
+
+  head:
+    container_name: head-basic-eth-pred
+    image: alloranetwork/allora-inference-base-head:latest
+    environment:
+      - HOME=/data
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - |
+        if [ ! -f /data/keys/priv.bin ]; then
+          echo "Generating new private keys..."
+          mkdir -p /data/keys
+          cd /data/keys
+          allora-keys
+        fi
+        allora-node --role=head --peer-db=/data/peerdb --function-db=/data/function-db  \
+          --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace \
+          --private-key=/data/keys/priv.bin --log-level=debug --port=9010 --rest-api=:6000
+    ports:
+      - "6000:6000"
+    volumes:
+      - ./head-data:/data
+    working_dir: /data
+    networks:
+      eth-model-local:
+        aliases:
+          - head
+        ipv4_address: 172.22.0.100
+
+networks:
+  eth-model-local:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+
+volumes:
+  inference-data:
+  worker-data:
+  head-data:
+EOL
 
             # Запуск Worker'а
             echo "Запуск Worker'а..."
@@ -265,15 +348,18 @@ sleep 2
                 echo "Проверка статуса ноды: Ошибка"
             fi
 
-            echo -e "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
-            echo "Через 20 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C.\n"
-            sleep 20
+            echo -e "\nСледи за всеми актуальными событиями Web3 на сайте https://web3easy.media\n"
+            ;;
+        2)
+            echo "Через 30 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C\n"
+            sleep 30
             container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
             if [ -z "$container_id" ]; then
                 echo "Контейнер с IMAGE 'basic-coin-prediction-node-worker' не найден."
             else
                 docker logs -f $container_id
             fi
+            ;;
         3)
             echo "Проверка статуса ноды..."
             if curl --location 'http://localhost:6000/api/v1/functions/execute' \
@@ -302,6 +388,7 @@ sleep 2
             else
                 echo "Проверка статуса ноды: Ошибка"
             fi
+            ;;
         4)
             echo "Проверка обновления ноды..."
             response=$(curl -s http://localhost:8000/update)
@@ -310,10 +397,13 @@ sleep 2
             else
                 echo "Версия ноды неактуальна."
             fi
+            ;;
         5)
-            echo "Выход из скрипта."
+            echo "Выход."
             exit 0
+            ;;
         *)
             echo "Неверная опция. Пожалуйста, выберите 1, 2, 3, 4 или 5."
+            ;;
     esac
 done
