@@ -79,7 +79,7 @@ while true; do
                 echo "Установка Docker Compose: Успешно"
             else
                 echo "Установка Docker Compose: Ошибка"
-                exit 1
+                else 1
             fi
 
             echo "Версия Docker Compose:"
