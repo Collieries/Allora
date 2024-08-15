@@ -198,3 +198,5 @@ EOF
             cd ~/basic-coin-prediction-node
             docker compose up -d --build
             ;;
+
+echo
