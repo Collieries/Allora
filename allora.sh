@@ -8,23 +8,19 @@ while true; do
     echo "1. Установить ноду Allora"
     echo "2. Проверить логи ноды Allora"
     echo "3. Проверить статус ноды Allora"
-    echo "4. Проверить обновление ноды Allora"
-    echo "5. Выйти из скрипта"
+    echo "4. Выйти из скрипта"
     read -p "Выберите опцию: " option
 
     case $option in
         1)
-            echo "Установка ноды..."
-
-            # Обновление пакетов
-            echo "Происходит обновление пакетов..."
+           echo "Обновление и установка пакетов..."
             if sudo apt update && sudo apt upgrade -y; then
-                echo "Обновление пакетов: Успешно"
+            echo "Обновление пакетов:Успешно"
             else
-                echo "Обновление пакетов: Ошибка"
-                exit 1
+            echo "Обновление пакетов:Ошибка"
+            exit 1
             fi
-
+            
             # Установка дополнительных пакетов
             echo "Происходит установка дополнительных пакетов..."
             if sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make -y; then
@@ -33,7 +29,7 @@ while true; do
                 echo "Установка дополнительных пакетов: Ошибка"
                 exit 1
             fi
-
+           
             # Установка Python
             echo "Происходит установка Python..."
             if sudo apt install python3 -y; then
@@ -43,7 +39,7 @@ while true; do
                 exit 1
             fi
 
-            echo "Версия Python:"
+              echo "Версия Python:"
             python3 --version
 
             if sudo apt install python3-pip -y; then
@@ -56,7 +52,7 @@ while true; do
             echo "Версия pip для Python:"
             pip3 --version
 
-            # Установка Docker
+              # Установка Docker
             echo "Происходит установка Docker..."
             if curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg &&
                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
@@ -88,15 +84,7 @@ echo
             echo "Версия Docker Compose:"
             docker-compose version
 
-            # Установка разрешений
-            echo "Происходит установка разрешений для Docker..."
-            if sudo groupadd docker && sudo usermod -aG docker $USER; then
-                echo "Установка разрешений для Docker: Успешно"
-            else
-                echo "Установка разрешений для Docker: Разрешение было применено по умолчанию"
-            fi
-
-            # Установка GO
+             # Установка GO
             echo "Происходит установка GO..."
             if sudo rm -rf /usr/local/go &&
                curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local &&
@@ -134,19 +122,23 @@ echo
                 exit 1
             fi
 
+
             # Установка Worker
             echo "Происходит установка Worker..."
             if cd $HOME && git clone https://github.com/allora-network/basic-coin-prediction-node &&
-               cd basic-coin-prediction-node &&
-               mkdir worker-data head-data &&
-               sudo chmod -R 777 worker-data head-data; then
+               cd basic-coin-prediction-node; then
                 echo "Установка Worker: Успешно"
             else
                 echo "Установка Worker: Ошибка"
                 exit 1
             fi
 
-          # Создание нового файла config.json
+            rm -rf config.json
+            
+            # Запрос Seed Phrase
+            read -p "Введите вашу Seed Phrase: " seed_phrase
+
+            # Создание нового файла config.json
             cat <<EOF > config.json
 {
     "wallet": {
@@ -201,13 +193,13 @@ EOF
         2)
             echo "Проверка логов... Для выхода в меню скрипта используйте комбинацию клавиш CTRL+C"
             sleep 10
-            docker compose logs -f worker "Не удалось вывести логи контейнера. Проверьте состояние Docker."
+            if docker compose logs -f worker "Не удалось вывести логи контейнера. Проверьте состояние Docker."
             ;;
         3)
             echo "Проверка цены Ethereum через ноду..."
             response=$(curl -s http://localhost:8000/inference/ETH)
             if [ -z "$response" ]; then
-                echo "Не удалось получить цену ETH. Проверьте состояние ноды."
+                log_message "Не удалось получить цену ETH. Проверьте состояние ноды."
             else
                 echo "Цена ETH: $response"
             fi
@@ -221,100 +213,3 @@ EOF
             ;;
     esac
 done
-
-            # Запуск Worker'а
-            echo "Запуск Worker'а..."
-            if docker compose build && docker compose up -d; then
-                echo "Запуск Worker'а: Успешно"
-            else
-                echo "Запуск Worker'а: Ошибка"
-                exit 1
-            fi
-
-            # Проверка статуса ноды
-            echo "Проверка статуса ноды..."
-            if curl --location 'http://localhost:6000/api/v1/functions/execute' \
-                --header 'Content-Type: application/json' \
-                --data '{
-                    "function_id": "bafybeigpiwl3o73zvvl6dxdqu7zqcub5mhg65jiky2xqb4rdhfmikswzqm",
-                    "method": "allora-inference-function.wasm",
-                    "parameters": null,
-                    "topic": "1",
-                    "config": {
-                        "env_vars": [
-                            {
-                                "name": "BLS_REQUEST_PATH",
-                                "value": "/api"
-                            },
-                            {
-                                "name": "ALLORA_ARG_PARAMS",
-                                "value": "ETH"
-                            }
-                        ],
-                        "number_of_nodes": -1,
-                        "timeout": 2
-                    }
-                }'; then
-                echo "Проверка статуса ноды: Успешно"
-            else
-                echo "Проверка статуса ноды: Ошибка"
-            fi
-
-            echo -e "\nПодписаться на канал Web3easy\n"
-            ;;
-        2)
-            echo "Через 30 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C\n"
-            sleep 30
-            container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
-            if [ -z "$container_id" ]; then
-                echo "Контейнер с IMAGE 'basic-coin-prediction-node-worker' не найден."
-            else
-                docker logs -f $container_id
-            fi
-            ;;
-        3)
-            echo "Проверка статуса ноды..."
-            if curl --location 'http://localhost:6000/api/v1/functions/execute' \
-                --header 'Content-Type: application/json' \
-                --data '{
-                    "function_id": "bafybeigpiwl3o73zvvl6dxdqu7zqcub5mhg65jiky2xqb4rdhfmikswzqm",
-                    "method": "allora-inference-function.wasm",
-                    "parameters": null,
-                    "topic": "1",
-                    "config": {
-                        "env_vars": [
-                            {
-                                "name": "BLS_REQUEST_PATH",
-                                "value": "/api"
-                            },
-                            {
-                                "name": "ALLORA_ARG_PARAMS",
-                                "value": "ETH"
-                            }
-                        ],
-                        "number_of_nodes": -1,
-                        "timeout": 2
-                    }
-                }'; then
-                echo "Проверка статуса ноды: Успешно"
-            else
-                echo "Проверка статуса ноды: Ошибка"
-            fi
-            ;;
-        4)
-            echo "Проверка обновления ноды..."
-            response=$(curl -s http://localhost:8000/update)
-            if [ "$response" == "0" ]; then
-                echo "Версия ноды актуальна."
-            else
-                echo "Версия ноды неактуальна."
-            fi
-            ;;
-        5)
-            echo "Выход из скрипта."
-            exit 0
-            ;;
-        *)
-            echo "Неверная опция. Пожалуйста, выберите 1, 2, 3, 4 или 5."
-            ;;
-    esac
