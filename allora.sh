@@ -266,8 +266,6 @@ sleep 2
             fi
 
             echo -e "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
-            
-        2)
             echo "Через 20 секунд пойдут логи. Для выхода из отображения логов нажмите CTRL+C.\n"
             sleep 20
             container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
