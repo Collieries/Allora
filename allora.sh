@@ -18,7 +18,7 @@ while true; do
 
             # Обновление пакетов
             echo "Происходит обновление пакетов..."
-            if sudo apt update && sudo apt upgrade -y; then
+            if sudo apt update && sudo apt upgrade -y && sudo apt install jq; then
                 echo "Обновление пакетов: Успешно"
             else
                 echo "Обновление пакетов: Ошибка"
