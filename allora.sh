@@ -190,7 +190,6 @@ EOF
             ./init.config
             cd ~/basic-coin-prediction-node
             docker compose up -d --build
-            ;;
-echo
-esac
+            ;;    
+    esac
 done
