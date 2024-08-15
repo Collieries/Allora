@@ -24,7 +24,10 @@ while true; do
                 echo "Обновление пакетов: Ошибка"
                 exit 1
             fi
-
+echo "Установка доп пакетов..."
+if sudo apt install jq
+echo
+fi
             # Установка дополнительных пакетов
             echo "Происходит установка дополнительных пакетов..."
             if sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make -y; then
@@ -182,7 +185,7 @@ while true; do
             fi
 
             # Создание файла config.json
-            cat <<EOF > config.json
+            cat <<EOL> config.json
 {
   "wallet": {
     "addressKeyName": "test",
