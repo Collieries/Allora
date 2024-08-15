@@ -77,7 +77,7 @@ while true; do
             echo
             execute_with_prompt 'sudo curl -L "https://github.com/docker/compose/releases/download/'"$VER"'/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose'
             echo
-            execute_with_prompt 'sudo chmod +x /usr/local/bin/docker-compose' then
+            execute_with_prompt 'sudo chmod +x /usr/local/bin/docker-compose'
                 echo "Установка Docker Compose: Успешно"
             else
                 echo "Установка Docker Compose: Ошибка"
