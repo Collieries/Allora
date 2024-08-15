@@ -73,12 +73,7 @@ while true; do
 
             # Установка Docker Compose
             echo "Происходит установка Docker Compose..."
-            VER=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '"' -f 4)
-echo
-execute_with_prompt 'sudo curl -L "https://github.com/docker/compose/releases/download/'"$VER"'/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose'
-echo
-execute_with_prompt 'sudo chmod +x /usr/local/bin/docker-compose'
-echo
+            if sudo apt-get install docker-compose -y; then
                 echo "Установка Docker Compose: Успешно"
             else
                 echo "Установка Docker Compose: Ошибка"
