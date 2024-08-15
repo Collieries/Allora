@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "\nПодписаться на канал Web3easy\n"
+echo -e  "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
 
 sleep 2
 
