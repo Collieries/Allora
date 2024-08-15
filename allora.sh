@@ -199,7 +199,7 @@ EOF
             echo "Проверка цены Ethereum через ноду..."
             response=$(curl -s http://localhost:8000/inference/ETH)
             if [ -z "$response" ]; then
-                log_message "Не удалось получить цену ETH. Проверьте состояние ноды."
+                echo "Не удалось получить цену ETH. Проверьте состояние ноды."
             else
                 echo "Цена ETH: $response"
             fi
