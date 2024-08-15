@@ -140,6 +140,7 @@ while true; do
             fi
 
             # Создание нового файла config.json
+            echo "Создание нового файла config.json"
             cat <<EOF > config.json
 {
     "wallet": {
