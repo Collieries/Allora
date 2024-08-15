@@ -137,9 +137,7 @@ echo
             # Установка Worker
             echo "Происходит установка Worker..."
             if cd $HOME && git clone https://github.com/allora-network/basic-coin-prediction-node &&
-               cd basic-coin-prediction-node &&
-               mkdir worker-data head-data &&
-               sudo chmod -R 777 worker-data head-data; then
+               cd basic-coin-prediction-node; then
                 echo "Установка Worker: Успешно"
             else
                 echo "Установка Worker: Ошибка"
