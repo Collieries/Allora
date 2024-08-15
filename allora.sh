@@ -182,7 +182,7 @@ while true; do
             fi
 
             # Создание файла config.json
-            cat <<EOL > config.json
+            cat <<EOF > config.json
 {
   "wallet": {
     "addressKeyName": "test",
@@ -216,7 +216,7 @@ while true; do
     }
   ]
 }
-EOF
+EOL
 
 echo -e "Файл config.json создан успешно"
 echo
