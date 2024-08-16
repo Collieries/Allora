@@ -150,7 +150,7 @@ EOF
             sleep 5
              container_id=$(docker ps --filter "worker" --format "{{.ID}}")
             if [ -z "$container_id" ]; then
-                docker logs -f $container_id
+                docker logs -f worker
             fi
             ;;
         3)
