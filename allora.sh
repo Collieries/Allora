@@ -1,142 +1,94 @@
 #!/bin/bash
 
-echo -e  "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
+# Функция для логгирования сообщений
+log_message() {
+    echo -e "\e[32m$1\e[0m"
+}
+
+# Функция для выполнения команд с обработкой ошибок
+run_command() {
+    local command="$1"
+    local error_message="$2"
+    
+    log_message "Выполняется: $command"
+    if eval "$command"; then
+        log_message "Успешно выполнено: $command"
+    else
+        log_message "$error_message"
+        exit 1
+    fi
+}
+
+# Функция для перезагрузки Docker
+restart_docker() {
+    log_message "Перезагружаем Docker..."
+    run_command "sudo systemctl restart docker" "Не удалось перезагрузить Docker. Проверьте состояние сервиса Docker."
+}
+
+# Функция для клонирования репозитория
+clone_repository() {
+    local repo_url="$1"
+    local target_dir="$2"
+    
+    if [ -d "$target_dir" ]; then
+        log_message "Удаление существующей директории $target_dir..."
+        rm -rf "$target_dir"
+    fi
+    
+    run_command "git clone $repo_url $target_dir" "Не удалось клонировать репозиторий $repo_url"
+}
+
+echo -e "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
 
 sleep 2
 
+# Основной цикл меню
 while true; do
     echo "1. Установить ноду Allora"
+    echo "2. Проверить логи ноды Allora"
+    echo "3. Проверить статус ноды Allora"
+    echo "4. Выйти из скрипта"
     read -p "Выберите опцию: " option
 
     case $option in
         1)
-            echo "Установка ноды..."
+            log_message "Обновление и установка пакетов..."
+            run_command "sudo apt update && sudo apt upgrade -y" "Не удалось обновить и установить пакеты."
+            run_command "sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make jq build-essential pkg-config lsb-release libssl-dev libreadline-dev libffi-dev gcc screen unzip lz4 -y" "Не удалось установить необходимые пакеты."
 
-            # Обновление пакетов
-            echo "Происходит обновление пакетов..."
-            if sudo apt update && sudo apt upgrade -y && sudo apt install jq; then
-                echo "Обновление пакетов: Успешно"
-            else
-                echo "Обновление пакетов: Ошибка"
-                exit 1
-            fi
+            log_message "Установка Python..."
+            run_command "sudo apt install python3 -y" "Не удалось установить Python."
 
-            # Установка дополнительных пакетов
-            echo "Происходит установка дополнительных пакетов..."
-            if sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make -y; then
-                echo "Установка дополнительных пакетов: Успешно"
-            else
-                echo "Установка дополнительных пакетов: Ошибка"
-                exit 1
-            fi
+            log_message "Установка pip3..."
+            run_command "sudo apt install python3-pip -y" "Не удалось установить pip3."
 
-            # Установка Python
-            echo "Происходит установка Python..."
-            if sudo apt install python3 -y; then
-                echo "Установка Python: Успешно"
-            else
-                echo "Установка Python: Ошибка"
-                exit 1
-            fi
+            log_message "Установка Docker..."
+            run_command "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && echo 'deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable' | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io -y" "Не удалось установить Docker."
 
-            echo "Версия Python:"
-            python3 --version
+            log_message "Установка Docker Compose..."
+            run_command "sudo apt-get install docker-compose -y" "Не удалось установить Docker Compose."
 
-            if sudo apt install python3-pip -y; then
-                echo "Установка pip для Python: Успешно"
-            else
-                echo "Установка pip для Python: Ошибка"
-                exit 1
-            fi
+            log_message "Установка GO..."
+            run_command "sudo rm -rf /usr/local/go && curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local && echo 'export PATH=\$PATH:/usr/local/go/bin:\$HOME/go/bin' >> \$HOME/.bash_profile && echo 'export PATH=\$PATH:\$(go env GOPATH)/bin' >> \$HOME/.bash_profile && source \$HOME/.bash_profile" "Не удалось установить GO."
 
-            echo "Версия pip для Python:"
-            pip3 --version
+            log_message "Установка Allorad Wallet..."
+            clone_repository "https://github.com/allora-network/allora-chain.git" "allora-chain"
+            run_command "cd allora-chain && make all" "Не удалось установить Allorad Wallet."
 
-            # Установка Docker
-            echo "Происходит установка Docker..."
-            if curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg &&
-               echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
-               sudo apt-get update &&
-               sudo apt-get install docker-ce docker-ce-cli containerd.io -y; then
-                echo "Установка Docker: Успешно"
-            else
-                echo "Установка Docker: Ошибка"
-                exit 1
-            fi
+            log_message "Запрос Seed Phrase у пользователя..."
+            run_command "allorad keys add testkey --recover" "Не удалось запросить Seed Phrase."
 
-            echo "Версия Docker:"
-            docker version
+            log_message "Установка Allora Worker..."
+            run_command "cd \$HOME"
+            run_command "git clone https://github.com/allora-network/basic-coin-prediction-node"
+            run_command "cd basic-coin-prediction-node"
 
-            # Установка Docker Compose
-            echo "Происходит установка Docker Compose..."
-            if sudo apt-get install docker-compose -y; then
-                echo "Установка Docker Compose: Успешно"
-            else
-                echo "Установка Docker Compose: Ошибка"
-                exit 1
-            fi
-
-            echo "Версия Docker Compose:"
-            docker-compose version
-
-            # Установка разрешений
-            echo "Происходит установка разрешений для Docker..."
-            if sudo groupadd docker && sudo usermod -aG docker $USER; then
-                echo "Установка разрешений для Docker: Успешно"
-            else
-                echo "Установка разрешений для Docker: Разрешение было применено по умолчанию"
-            fi
-
-            # Установка GO
-            echo "Происходит установка GO..."
-            if sudo rm -rf /usr/local/go &&
-               curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local &&
-               echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile &&
-               echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> $HOME/.bash_profile &&
-               source $HOME/.bash_profile; then
-                echo "Установка GO: Успешно"
-            else
-                echo "Установка GO: Ошибка"
-                exit 1
-            fi
-
-            echo "Версия GO:"
-            go version
-
-            # Установка Allorad Wallet
-            echo "Происходит установка Allorad Wallet..."
-            if git clone https://github.com/allora-network/allora-chain.git &&
-               cd allora-chain && make all; then
-                echo "Установка Allorad Wallet: Успешно"
-            else
-                echo "Установка Allorad Wallet: Ошибка"
-                exit 1
-            fi
-
-            echo "Версия Allorad Wallet:"
-            allorad version
-
-            # Ввод seed фразы и пароля от кошелька
-            echo "Введите seed фразу и пароль от кошелька для Allorad..."
-            if allorad keys add testkey --recover; then
-                echo "Ввод seed фразы и пароля от кошелька: Успешно"
-            else
-                echo "Ввод seed фразы и пароля от кошелька: Ошибка"
-                exit 1
-            fi
-
-            # Установка Worker
-            echo "Происходит установка Worker..."
-            if cd $HOME && git clone https://github.com/allora-network/basic-coin-prediction-node &&
-               cd basic-coin-prediction-node; then
-                echo "Установка Worker: Успешно"
-            else
-                echo "Установка Worker: Ошибка"
-                exit 1
-            fi
+            rm -rf config.json
+            
+            # Запрос Seed Phrase
+            read -p "Введите вашу Seed Phrase: " seed_phrase
 
             # Создание нового файла config.json
-            echo "Создание нового файла config.json"
             cat <<EOF > config.json
 {
     "wallet": {
@@ -182,11 +134,32 @@ while true; do
 }
 EOF
 
-            echo "Запуск Allora Worker..."
+            log_message "Запуск Allora Worker..."
             chmod +x init.config
             ./init.config
             cd ~/basic-coin-prediction-node
             docker compose up -d --build
-            ;;    
+            ;;
+        2)
+            log_message "Проверка логов... Для выхода в меню скрипта используйте комбинацию клавиш CTRL+C"
+            sleep 10
+            run_command "docker compose logs -f worker" "Не удалось вывести логи контейнера. Проверьте состояние Docker."
+            ;;
+        3)
+            log_message "Проверка цены Ethereum через ноду..."
+            response=$(curl -s http://localhost:8000/inference/ETH)
+            if [ -z "$response" ]; then
+                log_message "Не удалось получить цену ETH. Проверьте состояние ноды."
+            else
+                log_message "Цена ETH: $response"
+            fi
+            ;;
+        4)
+            log_message "Выход из скрипта."
+            exit 0
+            ;;
+        *)
+            log_message "Неверный выбор. Пожалуйста, попробуйте снова."
+            ;;
     esac
 done
