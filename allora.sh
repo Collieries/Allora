@@ -67,7 +67,10 @@ while true; do
 
             log_message "Установка Docker Compose..."
             run_command "sudo apt-get install docker-compose -y" "Не удалось установить Docker Compose."
-
+            run_command "VER=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '"' -f 4)"
+            run_command "sudo curl -L "https://github.com/docker/compose/releases/download/'"$VER"'/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose"
+            run_command "sudo chmod +x /usr/local/bin/docker-compose"
+                
             log_message "Установка GO..."
             run_command "sudo rm -rf /usr/local/go && curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local && echo 'export PATH=\$PATH:/usr/local/go/bin:\$HOME/go/bin' >> \$HOME/.bash_profile && echo 'export PATH=\$PATH:\$(go env GOPATH)/bin' >> \$HOME/.bash_profile && source \$HOME/.bash_profile" "Не удалось установить GO."
 
