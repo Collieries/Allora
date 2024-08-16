@@ -142,14 +142,12 @@ EOF
             chmod +x init.config
             sleep 2
             ./init.config
-            run_command "docker compose build"
-            run_command "docker-compose up -d"
+            run_command "docker ps"
             ;;
         2)
             log_message "Проверка логов..."
             sleep 5
-            if docker logs -f worker; then
-            fi
+            run_command "docker compose logs -f worker" "Не удалось вывести логи контейнера. Проверьте состояние Docker."
             ;;
         3)
             log_message "Проверка цены Ethereum через ноду..."
