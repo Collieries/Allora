@@ -142,11 +142,12 @@ EOF
             chmod +x init.config
             sleep 2
             ./init.config
-            run_command "docker ps"
             ;;
         2)
             log_message "Проверка логов..."
             sleep 5
+            run_command "docker ps"
+            sleep 10
             run_command "docker compose logs -f worker" "Не удалось вывести логи контейнера. Проверьте состояние Docker."
             ;;
         3)
