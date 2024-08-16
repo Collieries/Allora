@@ -142,6 +142,7 @@ EOF
             ;;
         2)
             log_message "Проверка логов..."
+            run_command "docker ps"
             sleep 10
             run_command "docker compose logs -f worker" "Не удалось вывести логи контейнера. Проверьте состояние Docker."
             ;;
