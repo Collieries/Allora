@@ -53,7 +53,7 @@ while true; do
     case $option in
         1)
             log_message "Обновление и установка пакетов..."
-            run_command "sudo apt update && sudo apt upgrade -y" "Не удалось обновить и установить пакеты."
+            run_command "sudo apt update && sudo apt upgrade -y && sudo apt install jq" "Не удалось обновить и установить пакеты."
             run_command "sudo apt install ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev curl git wget make jq build-essential pkg-config lsb-release libssl-dev libreadline-dev libffi-dev gcc screen unzip lz4 -y" "Не удалось установить необходимые пакеты."
 
             log_message "Установка Python..."
@@ -135,14 +135,15 @@ while true; do
 EOF
 
             log_message "Запуск Allora Worker..."
+            mkdir worker-data
             chmod +x init.config
+            sleep 2
             ./init.config
-            cd ~/basic-coin-prediction-node
-            docker compose up -d --build
+            run_command "docker compose build"
+            run_command "docker-compose up -d"
             ;;
         2)
             log_message "Проверка логов..."
-            run_command "docker ps"
             sleep 10
             run_command "docker compose logs -f worker" "Не удалось вывести логи контейнера. Проверьте состояние Docker."
             ;;
