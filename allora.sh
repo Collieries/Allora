@@ -148,9 +148,7 @@ EOF
         2)
             log_message "Проверка логов..."
             sleep 5
-             container_id=$(docker ps --filter "worker" --format "{{.ID}}")
-            if [ -z "$container_id" ]; then
-                docker logs -f worker
+            if docker logs -f worker; then
             fi
             ;;
         3)
