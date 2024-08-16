@@ -148,10 +148,8 @@ EOF
         2)
             log_message "Проверка логов..."
             sleep 5
-             container_id=$(docker ps --filter "ancestor=basic-coin-prediction-node-worker" --format "{{.ID}}")
+             container_id=$(docker ps --filter "worker" --format "{{.ID}}")
             if [ -z "$container_id" ]; then
-                echo "Контейнер с IMAGE 'basic-coin-prediction-node-worker' не найден."
-            else
                 docker logs -f $container_id
             fi
             ;;
