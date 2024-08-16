@@ -141,7 +141,7 @@ EOF
             docker compose up -d --build
             ;;
         2)
-            log_message "Проверка логов... Для выхода в меню скрипта используйте комбинацию клавиш CTRL+C"
+            log_message "Проверка логов..."
             sleep 10
             run_command "docker compose logs -f worker" "Не удалось вывести логи контейнера. Проверьте состояние Docker."
             ;;
