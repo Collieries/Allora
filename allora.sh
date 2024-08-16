@@ -142,6 +142,7 @@ EOF
             chmod +x init.config
             sleep 2
             ./init.config
+            docker compose up -d --build
             ;;
         2)
             log_message "Проверка логов..."
